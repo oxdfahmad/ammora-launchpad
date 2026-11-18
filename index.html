@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gozan Launchpad — Ammora on GIWA Sepolia</title>
+  <meta name="description" content="Launch a token on an Ammora Launch Curve, trade live curves and graduate them to AMM pools — on GIWA Sepolia testnet, powered by the Ammora SDK." />
+  <script type="module" crossorigin src="/assets/index-F-84HzQ5.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/index-LkQNhY5a.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="logo">🚀</span>
+      <div>
+        <h1>Gozan Launchpad</h1>
+        <p class="muted">Token launches on Ammora · GIWA Sepolia testnet (chain 91342)</p>
+      </div>
+    </div>
+    <div class="wallet">
+      <span id="wallet-info" class="small"></span>
+      <button id="connect-btn">Connect wallet</button>
+    </div>
+  </header>
+
+  <div class="statusbar">
+    <span id="deploy-status" class="small muted">Checking the Ammora deployment…</span>
+  </div>
+
+  <nav class="tabs">
+    <button id="tab-explore" class="tab active">Explore</button>
+    <button id="tab-create" class="tab">Create launch</button>
+    <button id="tab-trade" class="tab">Trade</button>
+    <button id="tab-graduate" class="tab">Graduate</button>
+  </nav>
+
+  <main>
+    <!-- Explore -->
+    <section id="panel-explore" class="panel active">
+      <div class="row space-between">
+        <h2>Live launches</h2>
+        <button id="refresh-explore">Refresh</button>
+      </div>
+      <p id="explore-meta" class="muted small"></p>
+      <div id="launch-list" class="grid"></div>
+      <h3>Configs</h3>
+      <div id="config-list" class="grid"></div>
+      <p class="muted small">Data is read live from GIWA Sepolia via the Ammora SDK. Launches are discovered by scanning <code>LaunchCreated</code> events from the launch factory. Nothing here is a mock.</p>
+    </section>
+
+    <!-- Create -->
+    <section id="panel-create" class="panel">
+      <h2>Create a launch</h2>
+      <p class="muted">One atomic transaction: a new Config (derived from the reviewed Ammora template #6), a new token, and your first buy on its Launch Curve. You are the Config owner, the Creator and the first-buy recipient. The SDK plans everything; your wallet signs.</p>
+      <div class="form">
+        <label>Token name <input id="create-name" type="text" value="Gozan Token" maxlength="32" /></label>
+        <label>Symbol <input id="create-symbol" type="text" value="GOZAN" maxlength="10" /></label>
+        <label>Description <input id="create-desc" type="text" value="Launched on the Gozan Launchpad — Ammora Launch Curve, GIWA Sepolia testnet." maxlength="200" /></label>
+        <label>Sale supply (tokens, 9 decimals) <input id="create-supply" type="number" value="1000000" min="1000" step="1000" /></label>
+        <label>Graduation threshold (WETH) <input id="create-threshold" type="number" value="0.001" min="0.0001" step="0.0001" /></label>
+        <label>Your first buy (WETH) <input id="create-firstbuy" type="number" value="0.0001" min="0.00001" step="0.00001" /></label>
+        <label>Slippage (bps, 100 = 1%) <input id="create-slippage" type="number" value="100" min="10" max="1000" step="10" /></label>
+        <div class="row"><button id="create-preview">Preview plan</button></div>
+        <p class="muted small">Preview is free and read-only. It checks your live WETH balance and allowance first — if either is short, the plan reports <code>APPROVAL_REQUIRED</code> (exact-amount approval) or a balance error instead of failing on-chain. The first buy is quoted with the SDK's curve math, so the minimum output is derived from the real curve, not a guess.</p>
+      </div>
+      <div id="create-output"></div>
+    </section>
+
+    <!-- Trade -->
+    <section id="panel-trade" class="panel">
+      <h2>Trade a curve</h2>
+      <p class="muted">Buy into or sell out of any active Ammora Launch Curve. Quotes come from the SDK's on-chain curve state (segmented math, live fee) and the swap is planned + simulated before your wallet signs.</p>
+      <div class="form">
+        <label>Curve address <input id="trade-curve" type="text" placeholder="0x…" /></label>
+        <div class="row"><button id="trade-load">Load curve</button></div>
+        <div id="trade-state"></div>
+        <label>Direction
+          <select id="trade-dir">
+            <option value="buy">Buy (WETH → token)</option>
+            <option value="sell">Sell (token → WETH)</option>
+          </select>
+        </label>
+        <label>Amount (WETH for buy, tokens for sell) <input id="trade-amount" type="number" value="0.001" min="0" step="0.0001" /></label>
+        <label>Slippage (bps, 50 = 0.5%) <input id="trade-slippage" type="number" value="50" min="10" max="1000" step="10" /></label>
+        <div class="row"><button id="trade-quote">Get quote</button></div>
+        <div id="trade-quote"></div>
+      </div>
+    </section>
+
+    <!-- Graduate -->
+    <section id="panel-graduate" class="panel">
+      <h2>Graduate a curve</h2>
+      <p class="muted">When a curve's quote threshold is filled it becomes <b>Filled</b> — anyone can then migrate it into its canonical AMM pool (concentrated graduation, migration mode 0). This tab shows the live progress and performs the migration.</p>
+      <div class="form">
+        <label>Curve address <input id="grad-curve" type="text" placeholder="0x…" /></label>
+        <div class="row"><button id="grad-check">Check graduation</button></div>
+        <div id="grad-state"></div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p class="muted small">
+      Built with <a href="https://docs.ammora.org" target="_blank" rel="noreferrer">@ammora-protocol/sdk@0.3.9</a> on GIWA Sepolia testnet.
+      Testnet only — nothing here is real money. Your wallet signs every transaction; this app never sees a private key.
+      Template Config #6 (hash <code>0x604890…667</code>) is verified on-chain before any launch is planned.
+    </p>
+  </footer>
+
+</body>
+</html>
